@@ -7,7 +7,8 @@ namespace AppMauiListaCompras
 {
     public partial class MainPage : ContentPage
     {
-        ObservableCollection<Produto> lista_produtos = new ObservableCollection<Produto>();
+        ObservableCollection<Produto> lista_produtos =
+            new ObservableCollection<Produto>();
 
         public MainPage()
         {
@@ -22,24 +23,22 @@ namespace AppMauiListaCompras
             DisplayAlert("Somatória", msg, "Fechar");
         }
 
-        protected override void OnAppearing()
+        protected async override void OnAppearing()
         {
-            if (lista_produtos.Count == 0) {
+            if (lista_produtos.Count == 0)
+            {
 
-                Task.Run(async () =>
+                List<Produto> tmp = await App.Db.GetAll();
+                foreach (Produto p in tmp)
                 {
-                    List<Produto> tmp = await App.Db.GetAll();
-                    foreach (Produto p in tmp)
-                    {
-                        lista_produtos.Add(p);
-                    }
-                });
+                    lista_produtos.Add(p);
+                }
             }
         }
 
-        private void ToolbarItem_Clicked_Add(object sender, EventArgs e)
+        private async void ToolbarItem_Clicked_Add(object sender, EventArgs e)
         {
-
+            await Navigation.PushAsync(new Views.NovoProduto());
         }
 
         private void txt_search_TextChanged(object sender, TextChangedEventArgs e)
@@ -65,7 +64,7 @@ namespace AppMauiListaCompras
             Task.Run(async () =>
             {
                 List<Produto> tmp = await App.Db.GetAll();
-                foreach(Produto p in tmp)
+                foreach (Produto p in tmp)
                 {
                     lista_produtos.Add(p);
                 }
@@ -76,11 +75,35 @@ namespace AppMauiListaCompras
 
         private void lst_produtos_ItemSelected(object sender, SelectedItemChangedEventArgs e)
         {
+            Produto? p = e.SelectedItem as Produto;
 
+            Navigation.PushAsync(new Views.NovoProduto()
+            {
+                BindingContext = p
+            });
         }
 
-        private void MenuItem_Clicked(object sender, EventArgs e)
+        private async void MenuItem_Clicked_Remover(object sender, EventArgs e)
         {
+            try
+            {
+                MenuItem selecionado = (MenuItem)sender;
+
+                Produto p = selecionado.BindingContext as Produto;
+
+                bool confirm = await DisplayAlert(
+                    "Tem certeza?", "Remover Produto?", "Sim", "Cancelar");
+
+                if (confirm)
+                {
+                    await App.Db.Delete(p.Id);
+                    await DisplayAlert("Suecesso", "Produto Removido", "OK");
+                }
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Ops", ex.Message, "OK");
+            }
 
         }
     }

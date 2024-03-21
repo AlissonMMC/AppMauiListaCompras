@@ -2,30 +2,34 @@ using AppMauiListaCompras.Models;
 
 namespace AppMauiListaCompras.Views;
 
-public partial class NovoProduto : ContentPage
+public partial class EdiarProduto : ContentPage
 {
-	public NovoProduto()
+	public EdiarProduto()
 	{
 		InitializeComponent();
 	}
 
     private async void ToolbarItem_Clicked(object sender, EventArgs e)
     {
-		try{
+		try
+		{
+			Produto produto_anexado = BindingContext as Produto;
+
 			Produto p = new Produto
 			{
+				Id = produto_anexado.Id,
 				Descricao = txt_descricao.Text,
 				Quantidade = Convert.ToDouble(txt_quantidade.Text),
 				Preco = Convert.ToDouble(txt_preco.Text),
 			};
 
-			await App.Db.Insert(p);
-			await DisplayAlert("SUcesso!", "Produto Inserido", "OK");
-			await Navigation.PushAsync(new MainPage());
+			await App.Db.Update(p);
+			await DisplayAlert("Sucesso!", "Produto Editado", "OK");
+			await Navigation.PopAsync();
 
-		}catch (Exception ex)
+		}catch(Exception ex)
 		{
-            await DisplayAlert("Ops", ex.Message, "OK");
-        }
+			await DisplayAlert("Ops", ex.Message, "Fechar");
+		}
     }
 }
